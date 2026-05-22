@@ -1,0 +1,26 @@
+name: Build Backend
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build & Publish
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - run: dotnet restore
+      - run: dotnet publish -c Release -o publish
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-publish
+          path: publish/

@@ -35,17 +35,5 @@ public class AppDbContext : DbContext
             new ThresholdSettings { Id = 1, Key = "low_stock_threshold", Value = 100 },
             new ThresholdSettings { Id = 2, Key = "expiring_soon_days", Value = 30 }
         );
-
-        // Seed admin user (password: admin123)
-        modelBuilder.Entity<User>().HasData(new User
-        {
-            Id = 1,
-            Email = "admin@pharmacy.com",
-            PasswordHash = "$2a$11$K4YfGqJ1e4YHIpQqW5q8ZuKj5J5m5K5G5K5G5K5G5K5G5K5G5K5G",
-            FullName = "Admin Manager",
-            PhoneNumber = "01000000000",
-            Role = "Admin",
-            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-        });
     }
 }
