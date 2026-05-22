@@ -8,8 +8,23 @@ using PharmacyWmsBackend.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ─────────────────────────────────────────────────────────────
+// SQLite for local dev, SQL Server for production.
+// Set ASPNETCORE_ENVIRONMENT=Production + provide a SQL Server connection
+// string via config / environment variable.
+var connStr = builder.Configuration.GetConnectionString("Default");
+var isProduction = builder.Environment.IsProduction();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+{
+    if (isProduction)
+    {
+        options.UseSqlServer(connStr);
+    }
+    else
+    {
+        options.UseSqlite(connStr);
+    }
+});
 
 // ── JWT Auth ──────────────────────────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -51,7 +66,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// ── Auto-migrate + seed ──────────────────────────────────────────────────
+// ── Auto-create DB + seed ────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
