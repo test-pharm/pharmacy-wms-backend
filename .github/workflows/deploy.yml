@@ -1,12 +1,12 @@
-name: Build Backend
+name: Build & Deploy to Somee.com
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  build:
-    name: Build & Publish
+  build-and-deploy:
+    name: Build & Deploy
     runs-on: windows-latest
 
     steps:
@@ -24,3 +24,13 @@ jobs:
         with:
           name: backend-publish
           path: publish/
+
+      - name: Deploy to somee.com via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: publish/
+          server-dir: /
+          dangerous-clean-slate: true
