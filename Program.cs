@@ -70,6 +70,30 @@ using (var scope = app.Services.CreateScope())
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Orders ADD COLUMN InvoiceNumber TEXT NULL"); } catch { }
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Orders ADD COLUMN ExpiryDate TEXT NULL"); } catch { }
 
+    // Migration: copy existing stock into StockBatch for FEFO
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN BatchesTemp INT NULL"); } catch { }
+    try { db.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS StockBatchesTemp"); } catch { }
+    try
+    {
+        var legacyProducts = db.Products.Where(p => p.Quantity > 0).ToList();
+        foreach (var p in legacyProducts)
+        {
+            var hasBatch = db.StockBatches.Any(b => b.ProductId == p.Id);
+            if (!hasBatch)
+            {
+                db.StockBatches.Add(new StockBatch
+                {
+                    ProductId = p.Id,
+                    ExpiryDate = p.ExpiryDate ?? "",
+                    Quantity = p.Quantity,
+                    ReceivedDate = DateTime.UtcNow,
+                });
+            }
+        }
+        await db.SaveChangesAsync();
+    }
+    catch { }
+
     await DbSeeder.SeedAsync(db);
 }
 

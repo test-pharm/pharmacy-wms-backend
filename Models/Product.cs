@@ -36,4 +36,6 @@ public class Product
     public string? CategoryName { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public List<StockBatch> Batches { get; set; } = new();
 }

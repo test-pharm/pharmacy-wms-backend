@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<ThresholdSettings> ThresholdSettings => Set<ThresholdSettings>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<StockBatch> StockBatches => Set<StockBatch>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -29,6 +29,21 @@ public class CreateProductRequest
     public int CategoryId { get; set; }
 }
 
+public class ReceiveStockRequest
+{
+    public int Quantity { get; set; }
+    public string? ExpiryDate { get; set; }
+}
+
+public class DispatchStockRequest
+{
+    public int? ProductId { get; set; }
+    public int Quantity { get; set; }
+    public string? InvoiceNumber { get; set; }
+    public string? CreatedBy { get; set; }
+    public string? Notes { get; set; }
+}
+
 public class UpdateProductRequest
 {
     [MaxLength(200)]
