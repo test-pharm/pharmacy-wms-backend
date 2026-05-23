@@ -16,7 +16,6 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - run: dotnet restore
       - run: dotnet publish -f net8.0 -c Release -o publish
 
       - name: Upload build artifact
@@ -39,7 +38,7 @@ jobs:
         shell: pwsh
         run: Start-Sleep -Seconds 10
 
-      - name: 3. Upload new build (overwrite, no clean slate)
+      - name: 3. Upload new build (clean slate, preserve db)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -47,7 +46,8 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: publish/
           server-dir: ${{ secrets.FTP_PATH }}/
-          dangerous-clean-slate: false
+          dangerous-clean-slate: true
+          exclude: pharmacy_wms.db
 
       - name: 4. Bring app online (delete app_offline.htm)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
