@@ -16,14 +16,16 @@ public class AuthController : ControllerBase
     private readonly TokenService _tokenService;
     private readonly ResetCodeService _resetCode;
     private readonly EmailService _email;
+    private readonly AuditLogService _audit;
 
     public AuthController(AppDbContext db, TokenService tokenService,
-        ResetCodeService resetCode, EmailService email)
+        ResetCodeService resetCode, EmailService email, AuditLogService audit)
     {
         _db = db;
         _tokenService = tokenService;
         _resetCode = resetCode;
         _email = email;
+        _audit = audit;
     }
 
     [HttpPost("login")]
@@ -34,6 +36,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid email or password." });
 
         var token = _tokenService.GenerateToken(user);
+        await _audit.LogAsync("Login", "User", user.Id, $"User {user.Email} logged in");
         return Ok(new AuthResponse
         {
             Token = token,
@@ -67,6 +70,7 @@ public class AuthController : ControllerBase
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
+        await _audit.LogAsync("RegisterAdmin", "User", user.Id, $"Registered admin {user.Email}");
         return Ok(new { message = "Admin registered successfully." });
     }
 
@@ -88,6 +92,7 @@ public class AuthController : ControllerBase
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
+        await _audit.LogAsync("RegisterUser", "User", user.Id, $"Registered user {user.Email}");
         return Ok(new { message = "User registered successfully." });
     }
 
@@ -104,6 +109,7 @@ public class AuthController : ControllerBase
         if (request.PhoneNumber != null) user.PhoneNumber = request.PhoneNumber;
 
         await _db.SaveChangesAsync();
+        await _audit.LogAsync("UpdateProfile", "User", userId, "Profile updated");
         return Ok(new { message = "Profile updated." });
     }
 
@@ -155,6 +161,7 @@ public class AuthController : ControllerBase
         user.PasswordHash = PasswordService.Hash(request.NewPassword);
         await _db.SaveChangesAsync();
 
+        await _audit.LogAsync("ChangePassword", "User", user.Id, $"Password changed for {request.Email}");
         return Ok(new { message = "Password changed successfully." });
     }
 }

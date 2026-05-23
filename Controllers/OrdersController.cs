@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PharmacyWmsBackend.Data;
 using PharmacyWmsBackend.DTOs;
 using PharmacyWmsBackend.Models;
+using PharmacyWmsBackend.Services;
 
 namespace PharmacyWmsBackend.Controllers;
 
@@ -13,8 +14,13 @@ namespace PharmacyWmsBackend.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly AuditLogService _audit;
 
-    public OrdersController(AppDbContext db) => _db = db;
+    public OrdersController(AppDbContext db, AuditLogService audit)
+    {
+        _db = db;
+        _audit = audit;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -56,6 +62,7 @@ public class OrdersController : ControllerBase
         _db.Orders.Add(order);
         await _db.SaveChangesAsync();
 
+        await _audit.LogAsync("CreateOrder", "Order", order.Id, $"Created {order.Type} order for {order.ProductName} x{order.Quantity}");
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
     }
 
@@ -68,6 +75,7 @@ public class OrdersController : ControllerBase
         order.Status = request.Status;
         await _db.SaveChangesAsync();
 
+        await _audit.LogAsync("UpdateOrderStatus", "Order", id, $"Order {id} status changed to {request.Status}");
         return Ok(order);
     }
 }

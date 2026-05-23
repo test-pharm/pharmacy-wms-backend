@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PharmacyWmsBackend.Data;
 using PharmacyWmsBackend.DTOs;
 using PharmacyWmsBackend.Models;
+using PharmacyWmsBackend.Services;
 
 namespace PharmacyWmsBackend.Controllers;
 
@@ -13,8 +14,13 @@ namespace PharmacyWmsBackend.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly AuditLogService _audit;
 
-    public ProductsController(AppDbContext db) => _db = db;
+    public ProductsController(AppDbContext db, AuditLogService audit)
+    {
+        _db = db;
+        _audit = audit;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -64,6 +70,7 @@ public class ProductsController : ControllerBase
         _db.Products.Add(product);
         await _db.SaveChangesAsync();
 
+        await _audit.LogAsync("CreateProduct", "Product", product.Id, $"Created {product.MaterialName} ({product.MaterialSku})");
         return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
     }
 
@@ -84,6 +91,7 @@ public class ProductsController : ControllerBase
         if (request.CategoryId.HasValue) product.CategoryId = request.CategoryId.Value;
 
         await _db.SaveChangesAsync();
+        await _audit.LogAsync("UpdateProduct", "Product", id, $"Updated {product.MaterialName}");
         return Ok(product);
     }
 
@@ -105,6 +113,7 @@ public class ProductsController : ControllerBase
 
         _db.Products.Remove(product);
         await _db.SaveChangesAsync();
+        await _audit.LogAsync("DeleteProduct", "Product", id, $"Deleted {product.MaterialName}");
         return NoContent();
     }
 }

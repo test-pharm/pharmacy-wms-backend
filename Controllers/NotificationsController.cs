@@ -15,11 +15,13 @@ public class NotificationsController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly EmailService _email;
+    private readonly AuditLogService _audit;
 
-    public NotificationsController(AppDbContext db, EmailService email)
+    public NotificationsController(AppDbContext db, EmailService email, AuditLogService audit)
     {
         _db = db;
         _email = email;
+        _audit = audit;
     }
 
     [HttpGet]
@@ -49,6 +51,7 @@ public class NotificationsController : ControllerBase
         _db.Notifications.Add(notification);
         await _db.SaveChangesAsync();
 
+        await _audit.LogAsync("CreateNotification", "Notification", notification.Id, $"Created notification: {request.Title}");
         return CreatedAtAction(nameof(GetAll), new { id = notification.Id }, notification);
     }
 
@@ -61,6 +64,7 @@ public class NotificationsController : ControllerBase
         notification.IsRead = true;
         await _db.SaveChangesAsync();
 
+        await _audit.LogAsync("MarkNotificationRead", "Notification", id, $"Notification {id} marked as read");
         return Ok(notification);
     }
 
@@ -71,6 +75,7 @@ public class NotificationsController : ControllerBase
             .Where(n => !n.IsRead)
             .ExecuteUpdateAsync(setters => setters.SetProperty(n => n.IsRead, true));
 
+        await _audit.LogAsync("MarkAllNotificationsRead", "Notification", null, "All notifications marked as read");
         return Ok(new { message = "All notifications marked as read." });
     }
 
@@ -78,6 +83,7 @@ public class NotificationsController : ControllerBase
     public async Task<IActionResult> SendEmail([FromBody] EmailRequest request)
     {
         await _email.SendEmailAsync(request.To, request.Subject, request.Body);
+        await _audit.LogAsync("SendEmail", "Email", null, $"Email sent to {request.To}: {request.Subject}");
         return Ok(new { message = "Email sent." });
     }
 }

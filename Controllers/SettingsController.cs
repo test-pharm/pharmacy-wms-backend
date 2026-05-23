@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PharmacyWmsBackend.Data;
 using PharmacyWmsBackend.DTOs;
 using PharmacyWmsBackend.Models;
+using PharmacyWmsBackend.Services;
 
 namespace PharmacyWmsBackend.Controllers;
 
@@ -13,8 +14,13 @@ namespace PharmacyWmsBackend.Controllers;
 public class SettingsController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly AuditLogService _audit;
 
-    public SettingsController(AppDbContext db) => _db = db;
+    public SettingsController(AppDbContext db, AuditLogService audit)
+    {
+        _db = db;
+        _audit = audit;
+    }
 
     [HttpGet("thresholds")]
     public async Task<IActionResult> GetThresholds()
@@ -67,6 +73,7 @@ public class SettingsController : ControllerBase
         }
 
         await _db.SaveChangesAsync();
+        await _audit.LogAsync("UpdateThresholds", "Settings", null, $"Low stock: {request.LowStockThreshold}, Expiring soon: {request.ExpiringSoonDays}");
         return await GetThresholds();
     }
 }
