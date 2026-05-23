@@ -7,22 +7,19 @@ namespace PharmacyWmsBackend.Controllers;
 [Route("api/[controller]")]
 public class UpdateController : ControllerBase
 {
+    private static DateTime _lastRead = DateTime.MinValue;
     private static UpdateInfo? _cached;
 
     private static UpdateInfo GetInfo()
     {
-        if (_cached != null) return _cached;
         var path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "version.json");
-        if (System.IO.File.Exists(path))
+        if (System.IO.File.Exists(path) && (DateTime.UtcNow - _lastRead).TotalSeconds > 30)
         {
             var json = System.IO.File.ReadAllText(path);
             _cached = JsonSerializer.Deserialize<UpdateInfo>(json) ?? new UpdateInfo();
+            _lastRead = DateTime.UtcNow;
         }
-        else
-        {
-            _cached = new UpdateInfo();
-        }
-        return _cached;
+        return _cached ?? new UpdateInfo();
     }
 
     [HttpGet]
