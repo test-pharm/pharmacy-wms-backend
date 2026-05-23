@@ -31,6 +31,7 @@ jobs:
           "newVersion=$newVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Commit version bump
+        continue-on-error: true
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
