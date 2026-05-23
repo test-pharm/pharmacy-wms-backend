@@ -39,4 +39,10 @@ public class Order
 
     [MaxLength(500)]
     public string? Notes { get; set; }
+
+    [MaxLength(100)]
+    public string? InvoiceNumber { get; set; }
+
+    [MaxLength(50)]
+    public string? ExpiryDate { get; set; }
 }

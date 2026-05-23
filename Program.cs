@@ -75,9 +75,9 @@ app.MapControllers();
 
 app.MapGet("/api/version", () => Results.Ok(new
 {
-    version = "1.0.6",
-    deployedAt = DateTime.UtcNow,
-    environment = builder.Environment.EnvironmentName,
+    version = "1.0.7",
+    build = 2,
+    environment = app.Environment.EnvironmentName
 }));
 
 app.Run();

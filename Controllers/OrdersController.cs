@@ -56,6 +56,8 @@ public class OrdersController : ControllerBase
             Status = "completed",
             CreatedBy = request.CreatedBy,
             Notes = request.Notes,
+            InvoiceNumber = request.InvoiceNumber,
+            ExpiryDate = request.ExpiryDate,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -64,6 +66,38 @@ public class OrdersController : ControllerBase
 
         await _audit.LogAsync("CreateOrder", "Order", order.Id, $"Created {order.Type} order for {order.ProductName} x{order.Quantity}");
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
+    }
+
+    [HttpGet("invoices")]
+    public async Task<IActionResult> GetInvoices()
+    {
+        var invoices = await _db.Orders
+            .Where(o => o.InvoiceNumber != null && o.InvoiceNumber != "")
+            .GroupBy(o => o.InvoiceNumber)
+            .Select(g => new
+            {
+                invoiceNumber = g.Key,
+                materialCount = g.Count(),
+                totalQuantity = g.Sum(o => o.Quantity),
+                dateFrom = g.Min(o => o.CreatedAt),
+                dateTo = g.Max(o => o.CreatedAt),
+            })
+            .OrderByDescending(i => i.dateTo)
+            .ToListAsync();
+
+        return Ok(invoices);
+    }
+
+    [HttpGet("invoices/{invoiceNumber}")]
+    public async Task<IActionResult> GetInvoiceDetails(string invoiceNumber)
+    {
+        var orders = await _db.Orders
+            .Where(o => o.InvoiceNumber == invoiceNumber)
+            .OrderBy(o => o.CreatedAt)
+            .ToListAsync();
+
+        if (!orders.Any()) return NotFound(new { message = "Invoice not found." });
+        return Ok(orders);
     }
 
     [HttpPatch("{id}/status")]
