@@ -38,7 +38,7 @@ jobs:
         shell: pwsh
         run: Start-Sleep -Seconds 10
 
-      - name: 3. Upload new build (clean slate, preserve db)
+      - name: 3. Upload new build (overwrite, no clean slate)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -46,8 +46,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: publish/
           server-dir: ${{ secrets.FTP_PATH }}/
-          dangerous-clean-slate: true
-          exclude: pharmacy_wms.db
+          dangerous-clean-slate: false
 
       - name: 4. Bring app online (delete app_offline.htm)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
