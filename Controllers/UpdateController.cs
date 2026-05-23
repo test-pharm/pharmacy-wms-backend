@@ -12,10 +12,10 @@ public class UpdateController : ControllerBase
     private static UpdateInfo GetInfo()
     {
         if (_cached != null) return _cached;
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "version.json");
-        if (File.Exists(path))
+        var path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "version.json");
+        if (System.IO.File.Exists(path))
         {
-            var json = File.ReadAllText(path);
+            var json = System.IO.File.ReadAllText(path);
             _cached = JsonSerializer.Deserialize<UpdateInfo>(json) ?? new UpdateInfo();
         }
         else
