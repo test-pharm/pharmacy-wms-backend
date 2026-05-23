@@ -8,9 +8,13 @@ jobs:
   build-and-deploy:
     name: Build & Deploy
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto-bump version
         id: bump
@@ -31,7 +35,6 @@ jobs:
           "newVersion=$newVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Commit version bump
-        continue-on-error: true
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
