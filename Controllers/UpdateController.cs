@@ -11,7 +11,7 @@ public class UpdateController : ControllerBase
     {
         return Ok(new
         {
-            latestVersion = "1.0.8",
+            latestVersion = "1.0.9",
             latestBuildNumber = 1,
             downloadUrl = "https://github.com/test-pharm/pharmacy-wms-flutter/releases/latest/download/pharmacy-wms-windows.zip",
             mandatory = false,
