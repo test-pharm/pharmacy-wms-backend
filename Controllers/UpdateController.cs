@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PharmacyWmsBackend.Controllers;
@@ -6,24 +7,44 @@ namespace PharmacyWmsBackend.Controllers;
 [Route("api/[controller]")]
 public class UpdateController : ControllerBase
 {
+    private static UpdateInfo? _cached;
+
+    private static UpdateInfo GetInfo()
+    {
+        if (_cached != null) return _cached;
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "version.json");
+        if (File.Exists(path))
+        {
+            var json = File.ReadAllText(path);
+            _cached = JsonSerializer.Deserialize<UpdateInfo>(json) ?? new UpdateInfo();
+        }
+        else
+        {
+            _cached = new UpdateInfo();
+        }
+        return _cached;
+    }
+
     [HttpGet]
     public IActionResult Get()
     {
+        var info = GetInfo();
         return Ok(new
         {
-            latestVersion = "1.1.0",
-            latestBuildNumber = 1,
-            downloadUrl = "https://github.com/test-pharm/pharmacy-wms-flutter/releases/latest/download/pharmacy-wms-windows.zip",
-            mandatory = false,
-            releaseNotes = new[]
-            {
-                "Invoices tab with grouped order view and detail dialog",
-                "Audit log tab restored in sidebar navigation",
-                "Proper InvoiceNumber/ExpiryDate database columns",
-                "Backend-driven update checks (no GitHub URL dependency)",
-                "Fixed order creation: productId type mismatch resolved",
-                "Database migration for InvoiceNumber/ExpiryDate columns",
-            }
+            latestVersion = info.LatestVersion,
+            latestBuildNumber = info.LatestBuildNumber,
+            downloadUrl = info.DownloadUrl,
+            mandatory = info.Mandatory,
+            releaseNotes = info.ReleaseNotes
         });
+    }
+
+    private class UpdateInfo
+    {
+        public string LatestVersion { get; set; } = "1.0.0";
+        public int LatestBuildNumber { get; set; } = 0;
+        public string DownloadUrl { get; set; } = "https://github.com/test-pharm/pharmacy-wms-flutter/releases/latest/download/pharmacy-wms-windows.zip";
+        public bool Mandatory { get; set; } = false;
+        public List<string> ReleaseNotes { get; set; } = new();
     }
 }
