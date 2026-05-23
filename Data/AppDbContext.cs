@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<ThresholdSettings> ThresholdSettings => Set<ThresholdSettings>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
