@@ -7,26 +7,17 @@ using PharmacyWmsBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Database ─────────────────────────────────────────────────────────────
-// SQLite for local dev, SQL Server for production.
-// Set ASPNETCORE_ENVIRONMENT=Production + provide a SQL Server connection
-// string via config / environment variable.
+// â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Uses SQLite (file-based, no server needed). Works on somee.com out of the
+// box. The SQL Server provider is kept for future migration if needed.
 var connStr = builder.Configuration.GetConnectionString("Default");
-var isProduction = builder.Environment.IsProduction();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    if (isProduction)
-    {
-        options.UseSqlServer(connStr);
-    }
-    else
-    {
-        options.UseSqlite(connStr);
-    }
+    options.UseSqlite(connStr);
 });
 
-// ── JWT Auth ──────────────────────────────────────────────────────────────
+// â”€â”€ JWT Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -45,12 +36,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// ── Services ──────────────────────────────────────────────────────────────
+// â”€â”€ Services â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddSingleton<ResetCodeService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<AuditLogService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHostedService<AuditLogCleanupService>();
 
-// ── CORS (allow Flutter desktop) ──────────────────────────────────────────
+// â”€â”€ CORS (allow Flutter desktop) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -66,7 +60,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// ── Auto-create DB + seed ────────────────────────────────────────────────
+// â”€â”€ Auto-create DB + seed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
