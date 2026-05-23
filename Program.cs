@@ -65,6 +65,11 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
+
+    // Migration: add InvoiceNumber and ExpiryDate columns if missing
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Orders ADD COLUMN InvoiceNumber TEXT NULL"); } catch { }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Orders ADD COLUMN ExpiryDate TEXT NULL"); } catch { }
+
     await DbSeeder.SeedAsync(db);
 }
 
