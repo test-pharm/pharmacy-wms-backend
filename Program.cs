@@ -73,4 +73,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+app.MapGet("/api/version", () => Results.Ok(new
+{
+    version = "1.0.6",
+    deployedAt = DateTime.UtcNow,
+    environment = builder.Environment.EnvironmentName,
+}));
+
 app.Run();
