@@ -36,7 +36,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.json
-          git diff --cached --quiet && Write-Output "Nothing to commit" && exit 0
+          $changes = git diff --cached --name-only
+          if (-not $changes) { Write-Output "Nothing to commit"; exit 0 }
           git commit -m "Auto-bump to v${{ steps.bump.outputs.newVersion }} [skip ci]"
           git push origin main
 
