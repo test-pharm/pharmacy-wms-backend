@@ -50,6 +50,9 @@ jobs:
 
       - run: dotnet publish -f net8.0 -c Release -o publish
 
+      - name: Copy version.json into publish output
+        run: Copy-Item version.json publish/version.json
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
