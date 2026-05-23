@@ -10,16 +10,38 @@ public class UpdateController : ControllerBase
     private static DateTime _lastRead = DateTime.MinValue;
     private static UpdateInfo? _cached;
 
+    private static string? FindVersionFile()
+    {
+        var candidates = new[]
+        {
+            System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "version.json"),
+            System.IO.Path.Combine(Directory.GetCurrentDirectory(), "version.json"),
+        };
+        foreach (var p in candidates)
+        {
+            if (System.IO.File.Exists(p)) return p;
+        }
+        return null;
+    }
+
     private static UpdateInfo GetInfo()
     {
-        var path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "version.json");
-        if (System.IO.File.Exists(path) && (DateTime.UtcNow - _lastRead).TotalSeconds > 30)
+        var elapsed = (DateTime.UtcNow - _lastRead).TotalSeconds;
+        if (_cached != null && elapsed < 30) return _cached;
+
+        var path = FindVersionFile();
+        if (path != null)
         {
-            var json = System.IO.File.ReadAllText(path);
-            _cached = JsonSerializer.Deserialize<UpdateInfo>(json) ?? new UpdateInfo();
-            _lastRead = DateTime.UtcNow;
+            try
+            {
+                var json = System.IO.File.ReadAllText(path);
+                _cached = JsonSerializer.Deserialize<UpdateInfo>(json) ?? new UpdateInfo();
+                _lastRead = DateTime.UtcNow;
+                return _cached;
+            }
+            catch { }
         }
-        return _cached ?? new UpdateInfo();
+        return new UpdateInfo();
     }
 
     [HttpGet]
@@ -32,7 +54,25 @@ public class UpdateController : ControllerBase
             latestBuildNumber = info.LatestBuildNumber,
             downloadUrl = info.DownloadUrl,
             mandatory = info.Mandatory,
-            releaseNotes = info.ReleaseNotes
+            releaseNotes = info.ReleaseNotes,
+        });
+    }
+
+    [HttpGet("debug")]
+    public IActionResult Debug()
+    {
+        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        var curDir = Directory.GetCurrentDirectory();
+        var candidates = new[]
+        {
+            System.IO.Path.Combine(baseDir, "version.json"),
+            System.IO.Path.Combine(curDir, "version.json"),
+        };
+        return Ok(new
+        {
+            baseDirectory = baseDir,
+            currentDirectory = curDir,
+            files = candidates.Select(p => new { path = p, exists = System.IO.File.Exists(p) }),
         });
     }
 
