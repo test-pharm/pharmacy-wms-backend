@@ -35,7 +35,8 @@ public class UpdateController : ControllerBase
             try
             {
                 var json = System.IO.File.ReadAllText(path);
-                _cached = JsonSerializer.Deserialize<UpdateInfo>(json) ?? new UpdateInfo();
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                _cached = JsonSerializer.Deserialize<UpdateInfo>(json, opts) ?? new UpdateInfo();
                 _lastRead = DateTime.UtcNow;
                 return _cached;
             }
