@@ -93,7 +93,7 @@ public class OrdersController : ControllerBase
             var product = await _db.Products.FindAsync(request.ProductId);
             if (product != null)
             {
-                product.Quantity = await _db.StockBatches.Where(b => b.ProductId == product.Id).SumAsync(b => b.Quantity);
+                product.Quantity = batches.Sum(b => b.Quantity);
                 product.IsAvailable = product.Quantity > 0;
             }
         }
@@ -137,7 +137,7 @@ public class OrdersController : ControllerBase
             batchBreakdown.Add(new { batchId = batch.Id, expiryDate = batch.ExpiryDate, quantity = take });
         }
 
-        product.Quantity = await _db.StockBatches.Where(b => b.ProductId == request.ProductId).SumAsync(b => b.Quantity);
+        product.Quantity = batches.Sum(b => b.Quantity);
         product.IsAvailable = product.Quantity > 0;
 
         var order = new Order

@@ -22,6 +22,18 @@ public class ApprovalsController : ControllerBase
         _audit = audit;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var requests = await _db.Set<ExpiryChangeRequest>()
+            .Include(r => r.Batch)
+            .ThenInclude(b => b!.Product)
+            .OrderByDescending(r => r.RequestedAt)
+            .ToListAsync();
+
+        return Ok(requests);
+    }
+
     [HttpGet("pending")]
     public async Task<IActionResult> GetPending()
     {
