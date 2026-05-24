@@ -172,6 +172,58 @@ public class OrdersController : ControllerBase
         });
     }
 
+    [HttpPost("refund")]
+    public async Task<IActionResult> Refund([FromBody] RefundOrderRequest request)
+    {
+        if (request.ProductId == null)
+            return BadRequest(new { message = "ProductId is required." });
+
+        var product = await _db.Products.FindAsync(request.ProductId);
+        if (product == null) return NotFound(new { message = "Product not found." });
+
+        _db.StockBatches.Add(new StockBatch
+        {
+            ProductId = request.ProductId.Value,
+            ExpiryDate = request.ExpiryDate ?? "",
+            Quantity = request.Quantity,
+            ReceivedDate = DateTime.UtcNow,
+        });
+
+        product.Quantity = await _db.StockBatches.Where(b => b.ProductId == product.Id).SumAsync(b => b.Quantity);
+        product.IsAvailable = true;
+
+        var order = new Order
+        {
+            ProductId = request.ProductId,
+            ProductName = product.MaterialName,
+            ProductSku = product.MaterialSku,
+            Quantity = request.Quantity,
+            Unit = product.Unit,
+            LogNumber = product.LogNumber,
+            CategoryId = product.CategoryId,
+            Type = "refund",
+            Status = "completed",
+            CreatedBy = request.CreatedBy ?? "system",
+            InvoiceNumber = request.InvoiceNumber,
+            ExpiryDate = request.ExpiryDate ?? "",
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        await _audit.LogAsync("Refund", "Order", order.Id, $"Refunded {request.Quantity} of {product.MaterialName}");
+
+        return Ok(order);
+    }
+
+    [HttpGet("invoices/exists/{invoiceNumber}")]
+    public async Task<IActionResult> InvoiceExists(string invoiceNumber)
+    {
+        var exists = await _db.Orders.AnyAsync(o => o.InvoiceNumber == invoiceNumber);
+        return Ok(new { exists });
+    }
+
     [HttpGet("invoices")]
     public async Task<IActionResult> GetInvoices()
     {

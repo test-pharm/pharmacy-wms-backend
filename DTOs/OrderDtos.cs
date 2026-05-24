@@ -38,6 +38,18 @@ public class CreateOrderRequest
     public string? ExpiryDate { get; set; }
 }
 
+public class RefundOrderRequest
+{
+    public int? ProductId { get; set; }
+    public int Quantity { get; set; }
+    [MaxLength(100)]
+    public string? InvoiceNumber { get; set; }
+    [MaxLength(200)]
+    public string? CreatedBy { get; set; }
+    [MaxLength(50)]
+    public string? ExpiryDate { get; set; }
+}
+
 public class UpdateOrderStatusRequest
 {
     [Required, MaxLength(20)]
