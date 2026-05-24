@@ -86,6 +86,27 @@ using (var scope = app.Services.CreateScope())
     }
     catch { }
 
+    // Migration: create ExpiryChangeRequests table if missing
+    try
+    {
+        db.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS ExpiryChangeRequests (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                BatchId INTEGER NOT NULL,
+                OldExpiry TEXT NOT NULL DEFAULT '',
+                NewExpiry TEXT NOT NULL DEFAULT '',
+                Reason TEXT NOT NULL DEFAULT '',
+                RequestedBy TEXT NOT NULL DEFAULT '',
+                RequestedAt TEXT NOT NULL,
+                Status TEXT NOT NULL DEFAULT 'Pending',
+                ReviewedBy TEXT,
+                ReviewedAt TEXT,
+                ReviewNotes TEXT,
+                FOREIGN KEY (BatchId) REFERENCES StockBatches(Id)
+            )");
+    }
+    catch { }
+
     // Migration: add InvoiceNumber and ExpiryDate columns if missing
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Orders ADD COLUMN InvoiceNumber TEXT NULL"); } catch { }
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Orders ADD COLUMN ExpiryDate TEXT NULL"); } catch { }

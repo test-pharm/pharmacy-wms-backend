@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<ThresholdSettings> ThresholdSettings => Set<ThresholdSettings>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<StockBatch> StockBatches => Set<StockBatch>();
+    public DbSet<ExpiryChangeRequest> ExpiryChangeRequests => Set<ExpiryChangeRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
