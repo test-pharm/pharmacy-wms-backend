@@ -1,9 +1,10 @@
 {
-  "latestVersion": "1.1.2",
-  "latestBuildNumber": 3,
+  "latestVersion": "1.1.3",
+  "latestBuildNumber": 4,
   "downloadUrl": "https://github.com/test-pharm/pharmacy-wms-flutter/releases/latest/download/pharmacy-wms-windows.zip",
   "mandatory": false,
   "releaseNotes": [
+    "Permanent fix: app now checks GitHub directly for updates (no backend dependency)",
     "Add Material form now includes Unit, Storage Location, and Category fields",
     "Fixed JSON circular reference crash when loading inventory",
     "Auto-create StockBatches table on existing databases"
