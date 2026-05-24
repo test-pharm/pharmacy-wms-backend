@@ -1,14 +1,11 @@
 {
-    "latestVersion":  "1.1.7",
-    "latestBuildNumber":  8,
-    "downloadUrl":  "https://github.com/test-pharm/pharmacy-wms-flutter/releases/latest/download/pharmacy-wms-windows.zip",
-    "mandatory":  false,
-    "releaseNotes":  [
-                         "Auto-bump versions on push (no manual editing)",
-                         "Invoices tab with grouped order view and detail dialog",
-                         "Audit log tab restored in sidebar",
-                         "Backend-driven update checks",
-                         "Fixed order creation (productId type mismatch resolved)",
-                         "Database migration for InvoiceNumber/ExpiryDate columns"
-                     ]
+  "latestVersion": "1.1.1",
+  "latestBuildNumber": 2,
+  "downloadUrl": "https://github.com/test-pharm/pharmacy-wms-flutter/releases/latest/download/pharmacy-wms-windows.zip",
+  "mandatory": false,
+  "releaseNotes": [
+    "FEFO: stock batches with expiry tracking, receive stock per batch, FEFO dispatch consumes earliest expiry first",
+    "Batch detail dialog — click product name in inventory to see all batches",
+    "Fixed update mechanism: backend now correctly serves frontend version info"
+  ]
 }
