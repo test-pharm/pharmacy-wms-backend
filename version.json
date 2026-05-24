@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.1.1",
-  "latestBuildNumber": 2,
+  "latestVersion": "1.1.2",
+  "latestBuildNumber": 3,
   "downloadUrl": "https://github.com/test-pharm/pharmacy-wms-flutter/releases/latest/download/pharmacy-wms-windows.zip",
   "mandatory": false,
   "releaseNotes": [
-    "FEFO: stock batches with expiry tracking, receive stock per batch, FEFO dispatch consumes earliest expiry first",
-    "Batch detail dialog — click product name in inventory to see all batches",
-    "Fixed update mechanism: backend now correctly serves frontend version info"
+    "Add Material form now includes Unit, Storage Location, and Category fields",
+    "Fixed JSON circular reference crash when loading inventory",
+    "Auto-create StockBatches table on existing databases"
   ]
 }
