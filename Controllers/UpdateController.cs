@@ -63,16 +63,20 @@ public class UpdateController : ControllerBase
     {
         var baseDir = AppDomain.CurrentDomain.BaseDirectory;
         var curDir = Directory.GetCurrentDirectory();
-        var candidates = new[]
+        var path = System.IO.Path.Combine(baseDir, "version.json");
+        string? content = null;
+        if (System.IO.File.Exists(path))
         {
-            System.IO.Path.Combine(baseDir, "version.json"),
-            System.IO.Path.Combine(curDir, "version.json"),
-        };
+            try { content = System.IO.File.ReadAllText(path); }
+            catch { content = "(error reading)"; }
+        }
         return Ok(new
         {
             baseDirectory = baseDir,
             currentDirectory = curDir,
-            files = candidates.Select(p => new { path = p, exists = System.IO.File.Exists(p) }),
+            filePath = path,
+            fileExists = System.IO.File.Exists(path),
+            fileContent = content,
         });
     }
 
