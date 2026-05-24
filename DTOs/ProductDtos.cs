@@ -27,6 +27,9 @@ public class CreateProductRequest
     public bool IsAvailable { get; set; } = true;
 
     public int CategoryId { get; set; }
+
+    [MaxLength(200)]
+    public string? CategoryName { get; set; }
 }
 
 public class ReceiveStockRequest

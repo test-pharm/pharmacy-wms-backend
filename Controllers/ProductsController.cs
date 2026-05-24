@@ -81,6 +81,7 @@ public class ProductsController : ControllerBase
             StorageLocation = request.StorageLocation,
             IsAvailable = request.IsAvailable,
             CategoryId = request.CategoryId,
+            CategoryName = request.CategoryName ?? "",
             CreatedAt = DateTime.UtcNow,
         };
 
