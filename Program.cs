@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using PharmacyWmsBackend.Data;
 using PharmacyWmsBackend.Models;
 using PharmacyWmsBackend.Services;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -142,6 +143,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapMetrics();
 
 app.MapGet("/api/version", () => Results.Ok(new
 {
