@@ -1,36 +1,30 @@
-name: Build & Deploy to Somee.com
+name: Backend CI
 
 on:
   push:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-deploy:
-    name: Build & Deploy
-    runs-on: windows-latest
+  build-and-push:
+    runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Read version
-        id: version
-        shell: powershell
-        run: |
-          $json = Get-Content version.json -Raw | ConvertFrom-Json
-          "version=$($json.latestVersion)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "8.0.x"
 
-      - run: dotnet publish -f net8.0 -c Release -o publish
+      - run: dotnet build -c Release -f net8.0
 
-      - name: Copy version.json into publish output
-        run: Copy-Item version.json publish/version.json
+      - run: dotnet publish -c Release -f net8.0 -o publish
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -38,93 +32,18 @@ jobs:
           name: backend-publish
           path: publish/
 
-      - name: Deploy to somee.com via FTP
-        shell: pwsh
-        run: |
-          $ftp = "ftp://$env:FTP_SERVER$env:FTP_PATH/"
-          $user = "$env:FTP_USERNAME"
-          $pass = "$env:FTP_PASSWORD"
-          $local = "publish"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-          function Upload-File($localPath, $remoteUrl) {
-            try {
-              $req = [System.Net.FtpWebRequest]::Create($remoteUrl)
-              $req.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
-              $req.Credentials = New-Object System.Net.NetworkCredential($user, $pass)
-              $req.UseBinary = $true
-              $bytes = [System.IO.File]::ReadAllBytes($localPath)
-              $req.ContentLength = $bytes.Length
-              $stream = $req.GetRequestStream()
-              $stream.Write($bytes, 0, $bytes.Length)
-              $stream.Close()
-              $req.GetResponse().Close()
-              return $true
-            } catch { return $false }
-          }
-
-          function MkDir($url) {
-            try {
-              $req = [System.Net.FtpWebRequest]::Create($url)
-              $req.Method = [System.Net.WebRequestMethods+Ftp]::MakeDirectory
-              $req.Credentials = New-Object System.Net.NetworkCredential($user, $pass)
-              $req.GetResponse().Close()
-            } catch {}
-          }
-
-          # 1. Take app offline
-          Write-Output "--- Taking app offline ---"
-          Upload-File ".github/ftp-offline/app_offline.htm" "${ftp}app_offline.htm"
-          Start-Sleep -Seconds 10
-
-          # 2. Upload all root files (skip localization subdirs and native runtimes for other platforms)
-          Write-Output "--- Uploading build files ---"
-          $skipDirs = @('cs','de','es','fr','it','ja','ko','pl','pt-BR','ru','tr','zh-Hans','zh-Hant','publish',
-            'browser-wasm','linux-arm','linux-arm64','linux-armel','linux-mips64','linux-musl-arm','linux-musl-arm64',
-            'linux-musl-x64','linux-musl-ppc64le','linux-musl-s390x','linux-ppc64le','linux-s390x','linux-x64','linux-x86',
-            'maccatalyst-arm64','maccatalyst-x64','osx-arm64','osx-x64','unix','win-arm','win-x86')
-
-          # Upload root files
-          Get-ChildItem $local -File | ForEach-Object {
-            $name = $_.Name
-            if (-not (Upload-File $_.FullName "${ftp}$name")) {
-              Write-Output "  FAILED: $name"
-            }
-          }
-
-          # Upload win-x64 runtimes
-          MkDir "${ftp}runtimes/win-x64/native/"
-          Get-ChildItem "$local/runtimes/win-x64/native" -File -ErrorAction SilentlyContinue | ForEach-Object {
-            if (-not (Upload-File $_.FullName "${ftp}runtimes/win-x64/native/$($_.Name)")) {
-              Write-Output "  FAILED: runtimes/win-x64/native/$($_.Name)"
-            }
-          }
-
-          # Upload win-arm64 runtimes
-          MkDir "${ftp}runtimes/win-arm64/native/"
-          Get-ChildItem "$local/runtimes/win-arm64/native" -File -ErrorAction SilentlyContinue | ForEach-Object {
-            if (-not (Upload-File $_.FullName "${ftp}runtimes/win-arm64/native/$($_.Name)")) {
-              Write-Output "  FAILED: runtimes/win-arm64/native/$($_.Name)"
-            }
-          }
-
-          # Upload runtimes/win/lib (needed for SQL client)
-          MkDir "${ftp}runtimes/win/lib/net6.0/"
-          Get-ChildItem "$local/runtimes/win/lib/net6.0" -File -ErrorAction SilentlyContinue | ForEach-Object {
-            Upload-File $_.FullName "${ftp}runtimes/win/lib/net6.0/$($_.Name)" | Out-Null
-          }
-
-          # 3. Bring app online (delete app_offline.htm)
-          Start-Sleep -Seconds 3
-          Write-Output "--- Bringing app online ---"
-          try {
-            $req = [System.Net.FtpWebRequest]::Create("${ftp}app_offline.htm")
-            $req.Method = [System.Net.WebRequestMethods+Ftp]::DeleteFile
-            $req.Credentials = New-Object System.Net.NetworkCredential($user, $pass)
-            $req.GetResponse().Close()
-            Write-Output "App online"
-          } catch { Write-Output "Note: app_offline may already be gone" }
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PATH: ${{ secrets.FTP_PATH }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/test-pharm/pharmacy-wms-backend:latest
+            ghcr.io/test-pharm/pharmacy-wms-backend:${{ github.sha }}
