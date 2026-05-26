@@ -1,0 +1,100 @@
+{
+  "title": "Pharmacy WMS",
+  "timezone": "browser",
+  "panels": [
+    {
+      "title": "Request Duration",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "targets": [{
+        "expr": "rate(microsoft_aspnetcore_hosting_http_server_request_duration_sum[5m]) / rate(microsoft_aspnetcore_hosting_http_server_request_duration_count[5m])",
+        "legendFormat": "avg"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": { "mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 1}, {"color": "red", "value": 3}] }
+        }
+      }
+    },
+    {
+      "title": "Active Requests",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "targets": [{
+        "expr": "microsoft_aspnetcore_hosting_http_server_active_requests",
+        "legendFormat": "active"
+      }]
+    },
+    {
+      "title": "Request Rate",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 0 },
+      "targets": [{
+        "expr": "rate(microsoft_aspnetcore_hosting_http_server_request_duration_count[1m])",
+        "legendFormat": "req/s"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "reqps" }
+      }
+    },
+    {
+      "title": "Uptime",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 0 },
+      "targets": [{
+        "expr": "time() - process_start_time_seconds",
+        "legendFormat": "uptime"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "title": "Memory",
+      "type": "graph",
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 6 },
+      "targets": [
+        { "expr": "process_working_set_bytes", "legendFormat": "Working Set" },
+        { "expr": "dotnet_total_memory_bytes", "legendFormat": "Managed Heap" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "title": "CPU",
+      "type": "graph",
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 6 },
+      "targets": [{
+        "expr": "rate(process_cpu_seconds_total[1m])",
+        "legendFormat": "CPU cores"
+      }]
+    },
+    {
+      "title": "Error Rate",
+      "type": "graph",
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 6 },
+      "targets": [
+        { "expr": "sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_count{http_response_status_code=~\"4..\"}[5m]))", "legendFormat": "4xx" },
+        { "expr": "sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_count{http_response_status_code=~\"5..\"}[5m]))", "legendFormat": "5xx" }
+      ]
+    },
+    {
+      "title": "Requests per Route",
+      "type": "graph",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 13 },
+      "targets": [{
+        "expr": "rate(microsoft_aspnetcore_hosting_http_server_request_duration_count[5m])",
+        "legendFormat": "{{http_route}}"
+      }]
+    },
+    {
+      "title": "DB Connections",
+      "type": "graph",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 13 },
+      "targets": [{
+        "expr": "npgsql_db_client_connections_usage",
+        "legendFormat": "{{state}}"
+      }]
+    }
+  ]
+}
