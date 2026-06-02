@@ -22,7 +22,10 @@ if (string.IsNullOrWhiteSpace(connStr))
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseNpgsql(connStr);
+    options.UseNpgsql(connStr, npgsqlOptions =>
+    {
+        npgsqlOptions.CommandTimeout(90);
+    });
 });
 
 // â”€â”€ JWT Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
