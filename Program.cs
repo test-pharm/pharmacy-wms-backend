@@ -20,6 +20,20 @@ if (string.IsNullOrWhiteSpace(connStr))
     throw new InvalidOperationException("No connection string configured. Set ConnectionStrings:Default or DATABASE_URL.");
 }
 
+// Convert postgresql:// URI format to ADO.NET connection string for Npgsql
+if (connStr.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+    connStr.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+{
+    var uri = new Uri(connStr);
+    var userInfo = uri.UserInfo.Split(':');
+    var username = userInfo[0];
+    var password = userInfo.Length > 1 ? userInfo[1] : "";
+    var host = uri.Host;
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    var database = uri.AbsolutePath.TrimStart('/');
+    connStr = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(connStr, npgsqlOptions =>
