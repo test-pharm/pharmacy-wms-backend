@@ -10,7 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Uses Supabase PostgreSQL (hosted).
-var connStr = builder.Configuration.GetConnectionString("Default");
+var connStr = builder.Configuration.GetConnectionString("Default")
+    ?? Environment.GetEnvironmentVariable("DATABASE_URL");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {

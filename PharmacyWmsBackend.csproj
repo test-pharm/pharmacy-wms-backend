@@ -28,6 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="appsettings.*.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="version.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
