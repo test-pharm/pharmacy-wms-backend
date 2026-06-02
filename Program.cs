@@ -33,16 +33,20 @@ if (connStr.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
     var host = uri.Host;
     var port = uri.Port > 0 ? uri.Port : 5432;
     var database = uri.AbsolutePath.TrimStart('/');
-    // PgBouncer transaction-mode compatibility: disable prepared statements & multiplexing
-    connStr = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;No Reset On Close=true;";
+    connStr = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+}
+
+// Ensure PgBouncer-compatible settings for Supabase pooler (port 6543)
+if (!connStr.Contains("No Reset On Close", StringComparison.OrdinalIgnoreCase))
+{
+    connStr = connStr.TrimEnd(';') + ";No Reset On Close=true;";
 }
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(connStr, npgsqlOptions =>
     {
-        npgsqlOptions.CommandTimeout(30);
-        // Required for PgBouncer transaction pooling (Supabase port 6543)
+        npgsqlOptions.CommandTimeout(60);
         npgsqlOptions.UseRelationalNulls();
     });
 });
