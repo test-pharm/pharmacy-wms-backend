@@ -21,6 +21,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Product>(entity =>
         {
             entity.HasIndex(p => p.MaterialSku).IsUnique();
+            // Explicit timestamp type to avoid Npgsql DateTimeKind mismatch
+            entity.Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -31,6 +33,26 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ThresholdSettings>(entity =>
         {
             entity.HasIndex(t => t.Key).IsUnique();
+        });
+
+        // Explicit timestamp type for AuditLog — fixes 500 on Supabase/Npgsql strict mode
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.ToTable("AuditLogs");
+            entity.Property(a => a.Timestamp)
+                  .HasColumnType("timestamp with time zone");
+        });
+
+        // Explicit timestamp types for Orders
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.Property(o => o.CreatedAt).HasColumnType("timestamp with time zone");
+        });
+
+        // Explicit timestamp types for Notifications
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.Property(n => n.CreatedAt).HasColumnType("timestamp with time zone");
         });
 
         // Seed default thresholds
