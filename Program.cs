@@ -10,8 +10,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 // â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Uses Supabase PostgreSQL (hosted).
-var connStr = builder.Configuration.GetConnectionString("Default")
-    ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+var connStr = builder.Configuration.GetConnectionString("Default");
+if (string.IsNullOrWhiteSpace(connStr))
+{
+    connStr = Environment.GetEnvironmentVariable("DATABASE_URL");
+    Console.WriteLine($"[BOOT] GetConnectionString returned null/empty, falling back to DATABASE_URL");
+}
+else
+{
+    Console.WriteLine($"[BOOT] Using configured connection string (Host present: {connStr.Contains("Host=", StringComparison.OrdinalIgnoreCase)})");
+}
+if (string.IsNullOrWhiteSpace(connStr))
+{
+    Console.Error.WriteLine("[BOOT] FATAL: No connection string found!");
+    throw new InvalidOperationException("No connection string configured. Set ConnectionStrings:Default or DATABASE_URL.");
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
