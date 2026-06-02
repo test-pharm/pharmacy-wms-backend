@@ -112,7 +112,7 @@ app.MapMetrics();
 app.MapGet("/api/version", () => Results.Ok(new
 {
     version = "1.0.7",
-    build = 2,
+    build = 3,
     environment = app.Environment.EnvironmentName
 }));
 
