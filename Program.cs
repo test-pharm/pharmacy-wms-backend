@@ -31,14 +31,17 @@ if (connStr.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
     var host = uri.Host;
     var port = uri.Port > 0 ? uri.Port : 5432;
     var database = uri.AbsolutePath.TrimStart('/');
-    connStr = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+    // PgBouncer transaction-mode compatibility: disable prepared statements & multiplexing
+    connStr = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;No Reset On Close=true;";
 }
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(connStr, npgsqlOptions =>
     {
-        npgsqlOptions.CommandTimeout(300);
+        npgsqlOptions.CommandTimeout(30);
+        // Required for PgBouncer transaction pooling (Supabase port 6543)
+        npgsqlOptions.UseRelationalNulls();
     });
 });
 
@@ -90,15 +93,30 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// â”€â”€ Auto-create DB + seed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Auto-create DB + seed ─────────────────────────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-    // Warm up Supabase (free tier sleeps after inactivity)
-    db.Database.ExecuteSqlRaw("SELECT 1");
+    try
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        // Warm up Supabase connection (free tier may sleep)
+        await db.Database.ExecuteSqlRawAsync("SELECT 1", cts.Token);
+        logger.LogInformation("Database connection established successfully.");
 
-    await DbSeeder.SeedAsync(db);
+        await DbSeeder.SeedAsync(db);
+        logger.LogInformation("Database seeding completed.");
+    }
+    catch (OperationCanceledException)
+    {
+        logger.LogWarning("Database startup warm-up timed out after 15s. App will start without seeding.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Database startup warm-up failed: {Message}", ex.Message);
+    }
 }
 
 app.UseCors();
