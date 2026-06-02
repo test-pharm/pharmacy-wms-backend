@@ -24,7 +24,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(connStr, npgsqlOptions =>
     {
-        npgsqlOptions.CommandTimeout(90);
+        npgsqlOptions.CommandTimeout(300);
     });
 });
 
@@ -54,6 +54,7 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<AuditLogService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHostedService<AuditLogCleanupService>();
+builder.Services.AddHostedService<DatabaseKeepAliveService>();
 
 // â”€â”€ CORS (allow Flutter desktop) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 builder.Services.AddCors(options =>
@@ -80,34 +81,22 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    // Retry loop to handle Supabase cold-start latency
-    for (var attempt = 1; attempt <= 3; attempt++)
+    // Warm up Supabase (free tier sleeps after inactivity)
+    db.Database.ExecuteSqlRaw("SELECT 1");
+
+    // Create database schema if needed
+    if (!db.Database.EnsureCreated())
     {
+        // Database existed but tables might be missing (common for Supabase's default "postgres" DB)
         try
         {
-            if (db.Database.EnsureCreated())
-            {
-                Console.WriteLine($"[BOOT] Database created on attempt {attempt}");
-                break;
-            }
-            // EnsureCreated returned false — database existed. Check if tables exist.
-            try
-            {
-                db.Database.ExecuteSqlRaw("SELECT 1 FROM \"Users\" LIMIT 1");
-            }
-            catch
-            {
-                Console.WriteLine($"[BOOT] Tables missing, creating schema (attempt {attempt})");
-                var sql = db.Database.GenerateCreateScript();
-                db.Database.ExecuteSqlRaw(sql);
-            }
-            break; // Success
+            db.Database.ExecuteSqlRaw("SELECT 1 FROM \"Users\" LIMIT 1");
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[BOOT] Attempt {attempt} failed: {ex.Message}");
-            if (attempt == 3) throw;
-            Thread.Sleep(5000 * attempt);
+            Console.WriteLine("[BOOT] Creating database tables...");
+            var sql = db.Database.GenerateCreateScript();
+            db.Database.ExecuteSqlRaw(sql);
         }
     }
 
