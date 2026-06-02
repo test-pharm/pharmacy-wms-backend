@@ -84,22 +84,6 @@ using (var scope = app.Services.CreateScope())
     // Warm up Supabase (free tier sleeps after inactivity)
     db.Database.ExecuteSqlRaw("SELECT 1");
 
-    // Create database schema if needed
-    if (!db.Database.EnsureCreated())
-    {
-        // Database existed but tables might be missing (common for Supabase's default "postgres" DB)
-        try
-        {
-            db.Database.ExecuteSqlRaw("SELECT 1 FROM \"Users\" LIMIT 1");
-        }
-        catch
-        {
-            Console.WriteLine("[BOOT] Creating database tables...");
-            var sql = db.Database.GenerateCreateScript();
-            db.Database.ExecuteSqlRaw(sql);
-        }
-    }
-
     await DbSeeder.SeedAsync(db);
 }
 
