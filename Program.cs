@@ -80,16 +80,34 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    if (!db.Database.EnsureCreated())
+    // Retry loop to handle Supabase cold-start latency
+    for (var attempt = 1; attempt <= 3; attempt++)
     {
         try
         {
-            db.Database.ExecuteSqlRaw("SELECT 1 FROM \"Users\" LIMIT 1");
+            if (db.Database.EnsureCreated())
+            {
+                Console.WriteLine($"[BOOT] Database created on attempt {attempt}");
+                break;
+            }
+            // EnsureCreated returned false — database existed. Check if tables exist.
+            try
+            {
+                db.Database.ExecuteSqlRaw("SELECT 1 FROM \"Users\" LIMIT 1");
+            }
+            catch
+            {
+                Console.WriteLine($"[BOOT] Tables missing, creating schema (attempt {attempt})");
+                var sql = db.Database.GenerateCreateScript();
+                db.Database.ExecuteSqlRaw(sql);
+            }
+            break; // Success
         }
-        catch
+        catch (Exception ex)
         {
-            var sql = db.Database.GenerateCreateScript();
-            db.Database.ExecuteSqlRaw(sql);
+            Console.WriteLine($"[BOOT] Attempt {attempt} failed: {ex.Message}");
+            if (attempt == 3) throw;
+            Thread.Sleep(5000 * attempt);
         }
     }
 
