@@ -14,15 +14,9 @@ var connStr = builder.Configuration.GetConnectionString("Default");
 if (string.IsNullOrWhiteSpace(connStr))
 {
     connStr = Environment.GetEnvironmentVariable("DATABASE_URL");
-    Console.WriteLine($"[BOOT] GetConnectionString returned null/empty, falling back to DATABASE_URL");
-}
-else
-{
-    Console.WriteLine($"[BOOT] Using configured connection string (Host present: {connStr.Contains("Host=", StringComparison.OrdinalIgnoreCase)})");
 }
 if (string.IsNullOrWhiteSpace(connStr))
 {
-    Console.Error.WriteLine("[BOOT] FATAL: No connection string found!");
     throw new InvalidOperationException("No connection string configured. Set ConnectionStrings:Default or DATABASE_URL.");
 }
 
@@ -82,7 +76,19 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+
+    if (!db.Database.EnsureCreated())
+    {
+        try
+        {
+            db.Database.ExecuteSqlRaw("SELECT 1 FROM \"Users\" LIMIT 1");
+        }
+        catch
+        {
+            var sql = db.Database.GenerateCreateScript();
+            db.Database.ExecuteSqlRaw(sql);
+        }
+    }
 
     await DbSeeder.SeedAsync(db);
 }
