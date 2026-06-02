@@ -24,9 +24,9 @@ public class AuditLogCleanupService : BackgroundService
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
                 var cutoff = DateTime.UtcNow.AddDays(-30);
-                var deleted = await db.Database
-                    .ExecuteSqlRawAsync("DELETE FROM AuditLogs WHERE Timestamp < {0}", new object[] { cutoff })
-                    .WaitAsync(stoppingToken);
+                var deleted = await db.AuditLogs
+                    .Where(log => log.Timestamp < cutoff)
+                    .ExecuteDeleteAsync(stoppingToken);
 
                 if (deleted > 0)
                 {

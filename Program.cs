@@ -3,20 +3,18 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PharmacyWmsBackend.Data;
-using PharmacyWmsBackend.Models;
 using PharmacyWmsBackend.Services;
 using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Uses SQLite (file-based, no server needed). Works on somee.com out of the
-// box. The SQL Server provider is kept for future migration if needed.
+// Uses Supabase PostgreSQL (hosted).
 var connStr = builder.Configuration.GetConnectionString("Default");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlite(connStr);
+    options.UseNpgsql(connStr);
 });
 
 // â”€â”€ JWT Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -71,70 +69,6 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
-
-    // Migration: create StockBatches table if missing (EnsureCreated skips new tables on existing DB)
-    try
-    {
-        db.Database.ExecuteSqlRaw(@"
-            CREATE TABLE IF NOT EXISTS StockBatches (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                ProductId INTEGER NOT NULL,
-                ExpiryDate TEXT NOT NULL DEFAULT '',
-                Quantity INTEGER NOT NULL DEFAULT 0,
-                ReceivedDate TEXT NOT NULL,
-                FOREIGN KEY (ProductId) REFERENCES Products(Id)
-            )");
-    }
-    catch { }
-
-    // Migration: create ExpiryChangeRequests table if missing
-    try
-    {
-        db.Database.ExecuteSqlRaw(@"
-            CREATE TABLE IF NOT EXISTS ExpiryChangeRequests (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                BatchId INTEGER NOT NULL,
-                OldExpiry TEXT NOT NULL DEFAULT '',
-                NewExpiry TEXT NOT NULL DEFAULT '',
-                Reason TEXT NOT NULL DEFAULT '',
-                RequestedBy TEXT NOT NULL DEFAULT '',
-                RequestedAt TEXT NOT NULL,
-                Status TEXT NOT NULL DEFAULT 'Pending',
-                ReviewedBy TEXT,
-                ReviewedAt TEXT,
-                ReviewNotes TEXT,
-                FOREIGN KEY (BatchId) REFERENCES StockBatches(Id)
-            )");
-    }
-    catch { }
-
-    // Migration: add InvoiceNumber and ExpiryDate columns if missing
-    try { db.Database.ExecuteSqlRaw("ALTER TABLE Orders ADD COLUMN InvoiceNumber TEXT NULL"); } catch { }
-    try { db.Database.ExecuteSqlRaw("ALTER TABLE Orders ADD COLUMN ExpiryDate TEXT NULL"); } catch { }
-
-    // Migration: copy existing stock into StockBatch for FEFO
-    try { db.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN BatchesTemp INT NULL"); } catch { }
-    try { db.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS StockBatchesTemp"); } catch { }
-    try
-    {
-        var legacyProducts = db.Products.Where(p => p.Quantity > 0).ToList();
-        foreach (var p in legacyProducts)
-        {
-            var hasBatch = db.StockBatches.Any(b => b.ProductId == p.Id);
-            if (!hasBatch)
-            {
-                db.StockBatches.Add(new StockBatch
-                {
-                    ProductId = p.Id,
-                    ExpiryDate = p.ExpiryDate ?? "",
-                    Quantity = p.Quantity,
-                    ReceivedDate = DateTime.UtcNow,
-                });
-            }
-        }
-        await db.SaveChangesAsync();
-    }
-    catch { }
 
     await DbSeeder.SeedAsync(db);
 }

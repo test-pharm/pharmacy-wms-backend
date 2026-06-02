@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\moham\\AppData\\Local\\Temp\\opencode\\pharmacy-wms-backend\\PharmacyWmsBackend.csproj": {}
+    "C:\\Users\\moham\\Downloads\\AntiPharm\\pharmacy-wms-backend\\PharmacyWmsBackend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\moham\\AppData\\Local\\Temp\\opencode\\pharmacy-wms-backend\\PharmacyWmsBackend.csproj": {
+    "C:\\Users\\moham\\Downloads\\AntiPharm\\pharmacy-wms-backend\\PharmacyWmsBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\moham\\AppData\\Local\\Temp\\opencode\\pharmacy-wms-backend\\PharmacyWmsBackend.csproj",
+        "projectUniqueName": "C:\\Users\\moham\\Downloads\\AntiPharm\\pharmacy-wms-backend\\PharmacyWmsBackend.csproj",
         "projectName": "PharmacyWmsBackend",
-        "projectPath": "C:\\Users\\moham\\AppData\\Local\\Temp\\opencode\\pharmacy-wms-backend\\PharmacyWmsBackend.csproj",
+        "projectPath": "C:\\Users\\moham\\Downloads\\AntiPharm\\pharmacy-wms-backend\\PharmacyWmsBackend.csproj",
         "packagesPath": "C:\\Users\\moham\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\moham\\AppData\\Local\\Temp\\opencode\\pharmacy-wms-backend\\obj\\",
+        "outputPath": "C:\\Users\\moham\\Downloads\\AntiPharm\\pharmacy-wms-backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\moham\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -24,6 +24,7 @@
         },
         "frameworks": {
           "net8.0": {
+            "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {}
           }
@@ -42,10 +43,12 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "10.0.300"
       },
       "frameworks": {
         "net8.0": {
+          "framework": "net8.0",
           "targetAlias": "net8.0",
           "dependencies": {
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
@@ -64,9 +67,21 @@
               "target": "Package",
               "version": "[8.0.0, )"
             },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[7.0.3, )"
+            },
+            "prometheus-net": {
+              "target": "Package",
+              "version": "[8.2.1, )"
+            },
+            "prometheus-net.AspNetCore": {
+              "target": "Package",
+              "version": "[8.2.1, )"
             }
           },
           "imports": [
@@ -80,6 +95,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.27, 8.0.27]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[8.0.27, 8.0.27]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.27, 8.0.27]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[8.0.27, 8.0.27]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -88,7 +121,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Users\\moham\\.dotnet\\sdk\\8.0.421/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
