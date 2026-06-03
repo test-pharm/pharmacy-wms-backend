@@ -22,7 +22,7 @@ public class CreateProductRequest
     public string ExpiryDate { get; set; } = string.Empty;
 
     [MaxLength(200)]
-    public string StorageLocation { get; set; } = string.Empty;
+    public string Supplier { get; set; } = string.Empty;
 
     public bool IsAvailable { get; set; } = true;
 
@@ -44,6 +44,7 @@ public class DispatchStockRequest
     public int Quantity { get; set; }
     public string? InvoiceNumber { get; set; }
     public string? CreatedBy { get; set; }
+    public string? Recipient { get; set; }
     public string? Notes { get; set; }
 }
 
@@ -67,7 +68,7 @@ public class UpdateProductRequest
     public string? ExpiryDate { get; set; }
 
     [MaxLength(200)]
-    public string? StorageLocation { get; set; }
+    public string? Supplier { get; set; }
 
     public bool? IsAvailable { get; set; }
 

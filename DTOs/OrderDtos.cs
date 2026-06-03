@@ -26,6 +26,9 @@ public class CreateOrderRequest
     public string Type { get; set; } = "add";
 
     [MaxLength(200)]
+    public string Supplier { get; set; } = string.Empty;
+
+    [MaxLength(200)]
     public string CreatedBy { get; set; } = string.Empty;
 
     [MaxLength(500)]
@@ -34,18 +37,6 @@ public class CreateOrderRequest
     [MaxLength(100)]
     public string? InvoiceNumber { get; set; }
 
-    [MaxLength(50)]
-    public string? ExpiryDate { get; set; }
-}
-
-public class RefundOrderRequest
-{
-    public int? ProductId { get; set; }
-    public int Quantity { get; set; }
-    [MaxLength(100)]
-    public string? InvoiceNumber { get; set; }
-    [MaxLength(200)]
-    public string? CreatedBy { get; set; }
     [MaxLength(50)]
     public string? ExpiryDate { get; set; }
 }

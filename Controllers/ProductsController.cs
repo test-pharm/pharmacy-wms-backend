@@ -78,7 +78,7 @@ public class ProductsController : ControllerBase
             Unit = request.Unit,
             LogNumber = request.LogNumber,
             ExpiryDate = request.ExpiryDate,
-            StorageLocation = request.StorageLocation,
+            Supplier = request.Supplier,
             IsAvailable = request.IsAvailable,
             CategoryId = request.CategoryId,
             CategoryName = request.CategoryName ?? "",
@@ -119,7 +119,7 @@ public class ProductsController : ControllerBase
         if (request.Unit != null) product.Unit = request.Unit;
         if (request.LogNumber != null) product.LogNumber = request.LogNumber;
         if (request.ExpiryDate != null) product.ExpiryDate = request.ExpiryDate;
-        if (request.StorageLocation != null) product.StorageLocation = request.StorageLocation;
+        if (request.Supplier != null) product.Supplier = request.Supplier;
         if (request.IsAvailable.HasValue) product.IsAvailable = request.IsAvailable.Value;
         if (request.CategoryId.HasValue) product.CategoryId = request.CategoryId.Value;
 
