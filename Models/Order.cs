@@ -33,10 +33,10 @@ public class Order
     public string Status { get; set; } = "pending"; // completed, pending, canceled
 
     [MaxLength(200)]
-    public string Supplier { get; set; } = string.Empty;
+    public string? Supplier { get; set; }
 
     [MaxLength(200)]
-    public string Recipient { get; set; } = string.Empty;
+    public string? Recipient { get; set; }
 
     [MaxLength(200)]
     public string CreatedBy { get; set; } = string.Empty;

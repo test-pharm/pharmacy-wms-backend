@@ -54,6 +54,7 @@ public class OrdersController : ControllerBase
             CategoryId = request.CategoryId,
             Type = request.Type,
             Status = "completed",
+            Supplier = request.Supplier,
             CreatedBy = request.CreatedBy,
             Notes = request.Notes,
             InvoiceNumber = request.InvoiceNumber,
@@ -154,7 +155,7 @@ public class OrdersController : ControllerBase
             CreatedBy = request.CreatedBy ?? "system",
             Notes = request.Notes,
             InvoiceNumber = request.InvoiceNumber,
-            Recipient = request.Recipient ?? "",
+            Recipient = request.Recipient,
             ExpiryDate = batches.FirstOrDefault(b => !string.IsNullOrEmpty(b.ExpiryDate))?.ExpiryDate,
             CreatedAt = DateTime.UtcNow,
         };

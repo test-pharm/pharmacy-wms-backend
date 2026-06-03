@@ -26,7 +26,7 @@ public class CreateOrderRequest
     public string Type { get; set; } = "add";
 
     [MaxLength(200)]
-    public string Supplier { get; set; } = string.Empty;
+    public string? Supplier { get; set; }
 
     [MaxLength(200)]
     public string CreatedBy { get; set; } = string.Empty;

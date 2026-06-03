@@ -26,7 +26,7 @@ public class Product
     public string ExpiryDate { get; set; } = string.Empty;
 
     [MaxLength(200)]
-    public string Supplier { get; set; } = string.Empty;
+    public string? Supplier { get; set; }
 
     public bool IsAvailable { get; set; } = true;
 
