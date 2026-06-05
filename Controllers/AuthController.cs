@@ -35,6 +35,9 @@ public class AuthController : ControllerBase
         if (user == null || !PasswordService.Verify(request.Password, user.PasswordHash))
             return Unauthorized(new { message = "Invalid email or password." });
 
+        if (!user.IsActive)
+            return Unauthorized(new { message = "Account is deactivated. Contact your supervisor." });
+
         var token = _tokenService.GenerateToken(user);
         await _audit.LogAsync("Login", "User", user.Id, $"User {user.Email} logged in");
         return Ok(new AuthResponse
@@ -47,6 +50,7 @@ public class AuthController : ControllerBase
                 FullName = user.FullName,
                 PhoneNumber = user.PhoneNumber,
                 Role = user.Role,
+                IsActive = user.IsActive,
                 Token = token,
             }
         });

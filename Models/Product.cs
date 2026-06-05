@@ -28,6 +28,8 @@ public class Product
     [MaxLength(200)]
     public string? Supplier { get; set; }
 
+    public int MinStockLevel { get; set; } = 0;
+
     public bool IsAvailable { get; set; } = true;
 
     public int CategoryId { get; set; }

@@ -22,5 +22,7 @@ public class User
     [MaxLength(50)]
     public string Role { get; set; } = "User"; // Admin or User
 
+    public bool IsActive { get; set; } = true;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

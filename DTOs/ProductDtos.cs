@@ -24,6 +24,8 @@ public class CreateProductRequest
     [MaxLength(200)]
     public string Supplier { get; set; } = string.Empty;
 
+    public int MinStockLevel { get; set; } = 0;
+
     public bool IsAvailable { get; set; } = true;
 
     public int CategoryId { get; set; }
@@ -69,6 +71,8 @@ public class UpdateProductRequest
 
     [MaxLength(200)]
     public string? Supplier { get; set; }
+
+    public int? MinStockLevel { get; set; }
 
     public bool? IsAvailable { get; set; }
 

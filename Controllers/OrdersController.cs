@@ -62,7 +62,7 @@ public class OrdersController : ControllerBase
             CreatedAt = DateTime.UtcNow,
         };
 
-        if (request.Type == "export" && request.ProductId.HasValue)
+        if ((request.Type == "export" || request.Type == "disposal") && request.ProductId.HasValue)
         {
             var batches = await _db.StockBatches
                 .Where(b => b.ProductId == request.ProductId && b.Quantity > 0)
@@ -235,7 +235,7 @@ public class OrdersController : ControllerBase
         if (order.Status == "canceled")
             return BadRequest(new { message = "Order is already canceled." });
 
-        if (order.Type == "export" && order.ProductId.HasValue)
+        if ((order.Type == "export" || order.Type == "disposal") && order.ProductId.HasValue)
         {
             var existing = await _db.StockBatches
                 .FirstOrDefaultAsync(b => b.ProductId == order.ProductId && b.ExpiryDate == (order.ExpiryDate ?? ""));

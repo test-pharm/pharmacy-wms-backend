@@ -15,6 +15,8 @@ public class AppDbContext : DbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<StockBatch> StockBatches => Set<StockBatch>();
     public DbSet<ExpiryChangeRequest> ExpiryChangeRequests => Set<ExpiryChangeRequest>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Contact> Contacts => Set<Contact>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +55,16 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Notification>(entity =>
         {
             entity.Property(n => n.CreatedAt).HasColumnType("timestamp with time zone");
+        });
+
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.Property(c => c.CreatedAt).HasColumnType("timestamp with time zone");
+        });
+
+        modelBuilder.Entity<Contact>(entity =>
+        {
+            entity.Property(c => c.CreatedAt).HasColumnType("timestamp with time zone");
         });
 
         // Seed default thresholds

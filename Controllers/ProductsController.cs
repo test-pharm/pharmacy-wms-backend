@@ -79,6 +79,7 @@ public class ProductsController : ControllerBase
             LogNumber = request.LogNumber,
             ExpiryDate = request.ExpiryDate,
             Supplier = request.Supplier,
+            MinStockLevel = request.MinStockLevel,
             IsAvailable = request.IsAvailable,
             CategoryId = request.CategoryId,
             CategoryName = request.CategoryName ?? "",
@@ -120,6 +121,7 @@ public class ProductsController : ControllerBase
         if (request.LogNumber != null) product.LogNumber = request.LogNumber;
         if (request.ExpiryDate != null) product.ExpiryDate = request.ExpiryDate;
         if (request.Supplier != null) product.Supplier = request.Supplier;
+        if (request.MinStockLevel.HasValue) product.MinStockLevel = request.MinStockLevel.Value;
         if (request.IsAvailable.HasValue) product.IsAvailable = request.IsAvailable.Value;
         if (request.CategoryId.HasValue) product.CategoryId = request.CategoryId.Value;
 
