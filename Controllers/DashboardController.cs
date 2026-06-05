@@ -100,4 +100,70 @@ public class DashboardController : ControllerBase
 
         return Ok(report);
     }
+
+    [HttpGet("activity")]
+    public async Task<IActionResult> GetActivity([FromQuery] int limit = 10)
+    {
+        var logs = await _db.AuditLogs
+            .OrderByDescending(a => a.Timestamp)
+            .Take(limit)
+            .Select(a => new {
+                a.Id,
+                a.Action,
+                a.EntityType,
+                a.EntityId,
+                a.Details,
+                a.UserName,
+                a.UserRole,
+                a.Timestamp
+            })
+            .ToListAsync();
+        return Ok(logs);
+    }
+
+    [HttpGet("stock-movement")]
+    public async Task<IActionResult> GetStockMovement([FromQuery] int days = 30)
+    {
+        var cutOffDate = DateTime.UtcNow.AddDays(-days);
+        var orders = await _db.Orders
+            .Where(o => o.CreatedAt >= cutOffDate && o.Status == "completed")
+            .ToListAsync();
+
+        var result = orders
+            .GroupBy(o => new { Date = o.CreatedAt.ToString("yyyy-MM-dd"), o.Type })
+            .Select(g => new {
+                Date = g.Key.Date,
+                Type = g.Key.Type,
+                OrderCount = g.Count(),
+                TotalQuantity = g.Sum(o => o.Quantity)
+            })
+            .OrderBy(r => r.Date)
+            .ToList();
+
+        return Ok(result);
+    }
+
+    [HttpGet("top-consumed")]
+    public async Task<IActionResult> GetTopConsumed([FromQuery] int? month, [FromQuery] int? year)
+    {
+        var targetMonth = month ?? DateTime.UtcNow.Month;
+        var targetYear = year ?? DateTime.UtcNow.Year;
+
+        var orders = await _db.Orders
+            .Where(o => o.Type == "export" && o.Status == "completed" && o.CreatedAt.Month == targetMonth && o.CreatedAt.Year == targetYear)
+            .ToListAsync();
+
+        var result = orders
+            .GroupBy(o => new { o.ProductName, o.ProductSku })
+            .Select(g => new {
+                ProductName = g.Key.ProductName,
+                ProductSku = g.Key.ProductSku,
+                TotalQuantity = g.Sum(o => o.Quantity)
+            })
+            .OrderByDescending(r => r.TotalQuantity)
+            .Take(5)
+            .ToList();
+
+        return Ok(result);
+    }
 }
