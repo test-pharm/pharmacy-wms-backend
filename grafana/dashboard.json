@@ -1,5 +1,5 @@
 {
-  "title": "Pharmacy WMS",
+  "title": "Pharmacy WMS Metrics & Performance",
   "timezone": "browser",
   "panels": [
     {
@@ -51,7 +51,7 @@
       }
     },
     {
-      "title": "Memory",
+      "title": "Memory Usage",
       "type": "graph",
       "gridPos": { "h": 7, "w": 8, "x": 0, "y": 6 },
       "targets": [
@@ -61,7 +61,7 @@
       "fieldConfig": { "defaults": { "unit": "bytes" } }
     },
     {
-      "title": "CPU",
+      "title": "CPU Load",
       "type": "graph",
       "gridPos": { "h": 7, "w": 8, "x": 8, "y": 6 },
       "targets": [{
@@ -70,31 +70,71 @@
       }]
     },
     {
-      "title": "Error Rate",
+      "title": "DB Connections Pool",
       "type": "graph",
       "gridPos": { "h": 7, "w": 8, "x": 16, "y": 6 },
+      "targets": [{
+        "expr": "npgsql_db_client_connections_usage",
+        "legendFormat": "{{state}}"
+      }]
+    },
+    {
+      "title": "HTTP Response Error Rates",
+      "type": "graph",
+      "gridPos": { "h": 7, "w": 10, "x": 0, "y": 13 },
       "targets": [
-        { "expr": "sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_count{http_response_status_code=~\"4..\"}[5m]))", "legendFormat": "4xx" },
-        { "expr": "sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_count{http_response_status_code=~\"5..\"}[5m]))", "legendFormat": "5xx" }
+        { "expr": "sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_count{http_response_status_code=~\"4..\"}[5m]))", "legendFormat": "4xx Client Errors" },
+        { "expr": "sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_count{http_response_status_code=~\"5..\"}[5m]))", "legendFormat": "5xx Server Errors" }
       ]
     },
     {
-      "title": "Requests per Route",
+      "title": "Exceptions Thrown Rate",
+      "type": "stat",
+      "gridPos": { "h": 7, "w": 7, "x": 10, "y": 13 },
+      "targets": [{
+        "expr": "rate(dotnet_exceptions_total[1m])",
+        "legendFormat": "exceptions/s"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "ops" }
+      }
+    },
+    {
+      "title": "Thread Pool Queue",
+      "type": "gauge",
+      "gridPos": { "h": 7, "w": 7, "x": 17, "y": 13 },
+      "targets": [{
+        "expr": "dotnet_threadpool_queue_length",
+        "legendFormat": "queue length"
+      }]
+    },
+    {
+      "title": "Requests per API Route",
       "type": "graph",
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 13 },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 20 },
       "targets": [{
         "expr": "rate(microsoft_aspnetcore_hosting_http_server_request_duration_count[5m])",
         "legendFormat": "{{http_route}}"
       }]
     },
     {
-      "title": "DB Connections",
+      "title": "HTTP Status Distribution",
       "type": "graph",
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 13 },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 20 },
       "targets": [{
-        "expr": "npgsql_db_client_connections_usage",
-        "legendFormat": "{{state}}"
+        "expr": "sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_count[5m])) by (http_response_status_code)",
+        "legendFormat": "HTTP {{http_response_status_code}}"
       }]
+    },
+    {
+      "title": ".NET GC Collections Rate",
+      "type": "graph",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 27 },
+      "targets": [
+        { "expr": "rate(dotnet_gc_collections_count_total{generation=\"0\"}[1m])", "legendFormat": "Gen 0 (Short Lived)" },
+        { "expr": "rate(dotnet_gc_collections_count_total{generation=\"1\"}[1m])", "legendFormat": "Gen 1 (Intermediate)" },
+        { "expr": "rate(dotnet_gc_collections_count_total{generation=\"2\"}[1m])", "legendFormat": "Gen 2 (Full GC)" }
+      ]
     }
   ]
 }
