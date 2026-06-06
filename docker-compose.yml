@@ -1,10 +1,11 @@
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: pharmacy_wms
       POSTGRES_USER: pharmacy
-      POSTGRES_PASSWORD: pharmacy
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pharmacy}
     ports:
       - "5432:5432"
     volumes:
@@ -14,37 +15,54 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - wms-network
 
   backend:
     build: .
+    restart: unless-stopped
     ports:
       - "10000:10000"
     environment:
-      DATABASE_URL: "Host=postgres;Port=5432;Database=pharmacy_wms;Username=pharmacy;Password=pharmacy;SSL Mode=Disable"
-      Jwt__Key: "dev-secret-key-that-is-at-least-32-chars-long!!"
+      DATABASE_URL: "Host=postgres;Port=5432;Database=pharmacy_wms;Username=pharmacy;Password=${DB_PASSWORD:-pharmacy};SSL Mode=Disable"
+      Jwt__Key: ${JWT_KEY:-dev-secret-key-that-is-at-least-32-chars-long!!}
       Jwt__Issuer: "PharmacyWMS"
       Jwt__Audience: "PharmacyWMS"
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - wms-network
 
   prometheus:
     image: prom/prometheus:latest
+    restart: unless-stopped
     ports:
       - "9090:9090"
     volumes:
       - ./prometheus.local.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - wms-network
 
   grafana:
     image: grafana/grafana:latest
+    restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
+      - grafanadata:/var/lib/grafana
       - ./grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
       - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
       - ./grafana/dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json:ro
     depends_on:
       - prometheus
+    networks:
+      - wms-network
 
 volumes:
   pgdata:
+  grafanadata:
+
+networks:
+  wms-network:
+    driver: bridge
