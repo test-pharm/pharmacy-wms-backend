@@ -70,6 +70,13 @@ public class ProductsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
     {
+        string categoryName = request.CategoryName ?? "";
+        if (request.CategoryId > 0 && string.IsNullOrEmpty(categoryName))
+        {
+            var cat = await _db.Categories.FindAsync(request.CategoryId);
+            if (cat != null) categoryName = cat.Name;
+        }
+
         var product = new Product
         {
             MaterialName = request.MaterialName,
@@ -82,7 +89,7 @@ public class ProductsController : ControllerBase
             MinStockLevel = request.MinStockLevel,
             IsAvailable = request.IsAvailable,
             CategoryId = request.CategoryId,
-            CategoryName = request.CategoryName ?? "",
+            CategoryName = categoryName,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -123,7 +130,12 @@ public class ProductsController : ControllerBase
         if (request.Supplier != null) product.Supplier = request.Supplier;
         if (request.MinStockLevel.HasValue) product.MinStockLevel = request.MinStockLevel.Value;
         if (request.IsAvailable.HasValue) product.IsAvailable = request.IsAvailable.Value;
-        if (request.CategoryId.HasValue) product.CategoryId = request.CategoryId.Value;
+        if (request.CategoryId.HasValue)
+        {
+            product.CategoryId = request.CategoryId.Value;
+            var cat = await _db.Categories.FindAsync(product.CategoryId);
+            if (cat != null) product.CategoryName = cat.Name;
+        }
 
         if (request.Quantity.HasValue)
         {
