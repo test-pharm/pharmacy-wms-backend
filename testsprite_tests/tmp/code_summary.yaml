@@ -1,0 +1,143 @@
+version: "2"
+type: backend
+tech_stack:
+  - C#
+  - .NET 8 Web API
+  - Entity Framework Core
+  - PostgreSQL (Supabase)
+  - Docker
+features:
+  - name: Authentication API
+    description: User authentication, JWT issuance, and password security
+    files:
+      - Controllers/AuthController.cs
+      - Services/TokenService.cs
+      - Services/PasswordService.cs
+    endpoints:
+      - method: POST
+        path: /api/auth/login
+        description: Authenticate user credentials and return JWT
+        auth_required: false
+      - method: POST
+        path: /api/auth/register
+        description: Register a new system user
+        auth_required: true
+
+  - name: Products Management API
+    description: Core product catalog operations (chemicals and reagents)
+    files:
+      - Controllers/ProductsController.cs
+    endpoints:
+      - method: GET
+        path: /api/products
+        description: Retrieve list of products
+        auth_required: true
+      - method: POST
+        path: /api/products
+        description: Add a new product to the catalog
+        auth_required: true
+      - method: GET
+        path: /api/products/{id}
+        description: Fetch product by ID
+        auth_required: true
+      - method: PUT
+        path: /api/products/{id}
+        description: Update product information
+        auth_required: true
+      - method: DELETE
+        path: /api/products/{id}
+        description: Remove product from catalog
+        auth_required: true
+
+  - name: Warehouse Stock Movements API
+    description: Ledger tracking for stock arrivals, issues, and disposals (applying FEFO stock rotation)
+    files:
+      - Controllers/OrdersController.cs
+    endpoints:
+      - method: GET
+        path: /api/orders
+        description: Retrieve list of warehouse stock actions
+        auth_required: true
+      - method: POST
+        path: /api/orders
+        description: Record a new receipt, dispatch, or disposal voucher
+        auth_required: true
+      - method: GET
+        path: /api/orders/{id}
+        description: Retrieve details of a stock order movement
+        auth_required: true
+
+  - name: Expiry Change Requests Approval API
+    description: Workflow for submission, approval, and rejection of batch expiry modifications
+    files:
+      - Controllers/ApprovalsController.cs
+    endpoints:
+      - method: GET
+        path: /api/approvals
+        description: Retrieve all expiry change requests
+        auth_required: true
+      - method: GET
+        path: /api/approvals/pending
+        description: Retrieve pending expiry change requests
+        auth_required: true
+      - method: GET
+        path: /api/approvals/my
+        description: Retrieve expiry requests submitted by current user
+        auth_required: true
+      - method: POST
+        path: /api/approvals
+        description: Submit a new change request for a batch expiration date
+        auth_required: true
+      - method: POST
+        path: /api/approvals/{id}/approve
+        description: Approve a pending change request (Manager only)
+        auth_required: true
+      - method: POST
+        path: /api/approvals/{id}/reject
+        description: Reject a pending change request (Manager only)
+        auth_required: true
+
+  - name: Categories API
+    description: CRUD actions for packaging or chemical categories
+    files:
+      - Controllers/CategoriesController.cs
+    endpoints:
+      - method: GET
+        path: /api/categories
+        description: Get all categories
+        auth_required: true
+      - method: POST
+        path: /api/categories
+        description: Create a category
+        auth_required: true
+
+  - name: Contacts API
+    description: Managing suppliers and laboratory recipients directories
+    files:
+      - Controllers/ContactsController.cs
+    endpoints:
+      - method: GET
+        path: /api/contacts
+        description: Get list of contacts
+        auth_required: true
+      - method: POST
+        path: /api/contacts
+        description: Add new supplier or client contact
+        auth_required: true
+
+  - name: System Audit Logs API
+    description: Security audit trial review endpoint
+    files:
+      - Controllers/AuditLogController.cs
+      - Services/AuditLogService.cs
+    endpoints:
+      - method: GET
+        path: /api/audit-log
+        description: Query security logs with pagination and filters
+        auth_required: true
+      - method: GET
+        path: /api/audit-log/{id}
+        description: Fetch audit log details by ID
+        auth_required: true
+
+known_limitations: []

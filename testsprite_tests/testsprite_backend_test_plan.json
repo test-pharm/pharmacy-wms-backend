@@ -1,0 +1,47 @@
+[
+  {
+    "id": "TC001",
+    "title": "postapiauthloginwithvalidcredentials",
+    "description": "Verify that POST /api/auth/login with valid user credentials returns HTTP 200 and a valid JWT token for authenticated sessions."
+  },
+  {
+    "id": "TC002",
+    "title": "postapiauthregisterwithadminprivileges",
+    "description": "Verify that POST /api/auth/register/admin creates a new system admin and returns HTTP 200 OK."
+  },
+  {
+    "id": "TC003",
+    "title": "getapiproductswithvalidtoken",
+    "description": "Verify that GET /api/products with a valid JWT token returns HTTP 200 and a list of products."
+  },
+  {
+    "id": "TC004",
+    "title": "postapiproductswithvaliddata",
+    "description": "Verify that POST /api/products with valid product data and authentication creates a new product and returns HTTP 201 Created."
+  },
+  {
+    "id": "TC005",
+    "title": "getapiorderslistwithvalidtoken",
+    "description": "Verify that GET /api/orders with a valid JWT token returns HTTP 200 and a list of warehouse stock movements."
+  },
+  {
+    "id": "TC006",
+    "title": "postapiapprovalswithvalidrequest",
+    "description": "Verify that POST /api/approvals with a valid batch expiry change request and authentication creates a new request with Pending status and returns HTTP 201 Created."
+  },
+  {
+    "id": "TC007",
+    "title": "getapicategorieswithvalidtoken",
+    "description": "Verify that GET /api/categories with a valid JWT token returns HTTP 200 and a list of categories."
+  },
+  {
+    "id": "TC008",
+    "title": "postapicontactswithvaliddata",
+    "description": "Verify that POST /api/contacts with valid supplier or client contact data and authentication creates a new contact and returns HTTP 201 Created."
+  },
+  {
+    "id": "TC009",
+    "title": "getapiauditlogwithadminauthorization",
+    "description": "Verify that GET /api/audit-log with valid admin JWT token returns HTTP 200 and paginated audit log results."
+  }
+]

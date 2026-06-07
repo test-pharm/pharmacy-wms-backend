@@ -1,0 +1,17 @@
+{
+  "status": "init",
+  "scope": "codebase",
+  "type": "backend",
+  "localEndpoint": "http://localhost:10000/",
+  "serverPort": 6992,
+  "executionArgs": {
+    "projectName": "pharmacy-wms-backend",
+    "projectPath": "c:/Users/moham/Downloads/AntiPharm/pharmacy-wms-backend",
+    "testIds": [],
+    "additionalInstruction": "1. For auth/login, the payload requires 'email' and 'password'. Use 'admin@pharmacy.com' with password 'admin123' (Admin role) and 'supervisor@pharmacy.com' with password 'super123' (Supervisor/Storekeeper role).\\n2. In TC002: You MUST change the registration URL to f'{BASE_URL}/api/auth/register/admin'. Do NOT use '/api/auth/register'. Assert that the response status code is 200 (not 201 or 404).\\n3. In TC004: Product creation (POST /api/products) requires 'materialName', 'materialSku', 'quantity', 'unit', 'logNumber', 'supplier', and 'categoryId'. Do not send 'name', 'price', or 'description'.\\n4. In TC006: Product creation must include 'quantity' (e.g., 10) so a batch is generated. Retrieve the batch ID from the created product's 'batches[0].id'. The request to POST /api/approvals must use keys 'batchId' (int), 'newExpiry' (string), and 'reason' (string), and check for status 200, not 201.\\n5. In TC008: The contact creation payload (POST /api/contacts) keys must be 'name' (string), 'type' (string, either 'Supplier' or 'Recipient'), 'phone' (string), and 'notes' (string). The response status code for POST /api/contacts is 200 (not 201). The response status code for DELETE /api/contacts/{id} is 200 or 404 (not 204).\\n6. In TC009: The audit log endpoint is GET /api/AuditLog (no hyphen, maps to AuditLogController). Check that the response contains the list of logs under the key 'data' (not 'items').",
+    "serverMode": "production",
+    "envs": {
+      "API_KEY": "sk-user-29C7AD33UJRMqKQXXKiM1HzT8TR-jau3BZkEi1FWab2RmPgISVX2dxpG1dUnDwhTR0X0cQdqr84yzrrOOJS3j1mnCFXDrmv0Yvv3wAXLIC_sxVzXclPhbPkJRQDq9Vi2620"
+    }
+  }
+}
