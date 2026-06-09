@@ -3,7 +3,7 @@
   "scope": "codebase",
   "type": "backend",
   "localEndpoint": "http://localhost:10000/",
-  "serverPort": 6992,
+  "serverPort": 14115,
   "executionArgs": {
     "projectName": "pharmacy-wms-backend",
     "projectPath": "c:/Users/moham/Downloads/AntiPharm/pharmacy-wms-backend",

@@ -1,34 +1,34 @@
 import requests
 
 BASE_URL = "http://localhost:10000"
+LOGIN_URL = f"{BASE_URL}/api/auth/login"
+CATEGORIES_URL = f"{BASE_URL}/api/categories"
+TIMEOUT = 30
 
 def test_get_api_categories_with_valid_token():
-    login_url = f"{BASE_URL}/api/auth/login"
-    categories_url = f"{BASE_URL}/api/categories"
+    # Authenticate as admin to get valid JWT token
     login_payload = {
         "email": "admin@pharmacy.com",
         "password": "admin123"
     }
     try:
-        # Authenticate to get JWT token
-        login_resp = requests.post(login_url, json=login_payload, timeout=30)
-        assert login_resp.status_code == 200, f"Login failed with status code {login_resp.status_code}"
-        login_json = login_resp.json()
-        assert "token" in login_json, "JWT token not found in login response"
-        token = login_json["token"]
-
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
-
-        # GET /api/categories with valid token
-        resp = requests.get(categories_url, headers=headers, timeout=30)
-        assert resp.status_code == 200, f"Expected status 200, got {resp.status_code}"
-        json_data = resp.json()
-        assert isinstance(json_data, list) or (isinstance(json_data, dict) and "data" in json_data), \
-            "Response should be a list or contain 'data' key"
-
+        login_response = requests.post(LOGIN_URL, json=login_payload, timeout=TIMEOUT)
+        assert login_response.status_code == 200, f"Login failed with status {login_response.status_code}"
+        token = login_response.json().get("token") or login_response.json().get("accessToken")
+        assert token is not None, "JWT token not found in login response"
     except requests.RequestException as e:
-        assert False, f"Request failed: {e}"
+        assert False, f"Login request failed: {e}"
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    try:
+        response = requests.get(CATEGORIES_URL, headers=headers, timeout=TIMEOUT)
+        assert response.status_code == 200, f"Expected status 200 but got {response.status_code}"
+        categories = response.json()
+        assert isinstance(categories, list), "Response is not a list of categories"
+    except requests.RequestException as e:
+        assert False, f"GET /api/categories request failed: {e}"
 
 test_get_api_categories_with_valid_token()

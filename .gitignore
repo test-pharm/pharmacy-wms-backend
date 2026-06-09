@@ -10,3 +10,5 @@ __pycache__/
 *.pyc
 node_modules/
 .DS_Store
+
+testsprite_tests\tmp\config.json

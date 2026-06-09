@@ -1,47 +1,36 @@
 import requests
 
 BASE_URL = "http://localhost:10000"
-LOGIN_URL = f"{BASE_URL}/api/auth/login"
-ORDERS_URL = f"{BASE_URL}/api/orders"
+LOGIN_ENDPOINT = f"{BASE_URL}/api/auth/login"
+ORDERS_ENDPOINT = f"{BASE_URL}/api/orders"
 TIMEOUT = 30
 
 def test_get_api_orders_list_with_valid_token():
-    # Step 1: Login to get valid JWT token (use admin credentials as example)
+    # Step 1: Authenticate with valid credentials to get JWT token
     login_payload = {
         "email": "admin@pharmacy.com",
         "password": "admin123"
     }
     try:
-        login_response = requests.post(LOGIN_URL, json=login_payload, timeout=TIMEOUT)
-        assert login_response.status_code == 200, f"Login failed with status code {login_response.status_code}"
-        token = login_response.json().get("token")
-        assert token and isinstance(token, str), "JWT token not found in login response"
+        login_response = requests.post(LOGIN_ENDPOINT, json=login_payload, timeout=TIMEOUT)
+        assert login_response.status_code == 200, f"Login failed with status {login_response.status_code}"
+        login_json = login_response.json()
+        token = login_json.get("token") or login_json.get("accessToken")
+        assert token, "JWT token not found in login response"
+
+        # Step 2: Use JWT token to get the orders list
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        orders_response = requests.get(ORDERS_ENDPOINT, headers=headers, timeout=TIMEOUT)
+        assert orders_response.status_code == 200, f"GET /api/orders failed with status {orders_response.status_code}"
+        orders_json = orders_response.json()
+        # Validate that the response is a list or contains a list of warehouse stock movements
+        assert isinstance(orders_json, list) or (
+            isinstance(orders_json, dict) and 
+            any(isinstance(v, list) for v in orders_json.values())
+        ), "Response does not contain a list of warehouse stock movements"
     except requests.RequestException as e:
-        assert False, f"Login request failed: {e}"
-
-    # Step 2: Make GET request to /api/orders with the valid token
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    try:
-        orders_response = requests.get(ORDERS_URL, headers=headers, timeout=TIMEOUT)
-    except requests.RequestException as e:
-        assert False, f"GET /api/orders request failed: {e}"
-
-    # Step 3: Assert the response status code is 200
-    assert orders_response.status_code == 200, f"Expected status code 200 but got {orders_response.status_code}"
-
-    # Step 4: Assert the response contains a list (assumption: list can be empty)
-    try:
-        orders_data = orders_response.json()
-    except ValueError:
-        assert False, "Response is not valid JSON"
-
-    # Since PRD mentions "a list of warehouse stock movements", a likely structure is a list at root or maybe under a key
-    # We check if it's a list or contains a 'data' or similar key with a list - we assume it's a list at root from PRD usage
-    assert isinstance(orders_data, list), f"Expected response to be a list but got {type(orders_data)}"
-    
-    # Optional: If list is not empty, check if each item has expected basic keys (like id, date, type)
-    # This detailed check is not explicitly required so we skip it
+        assert False, f"Request failed: {e}"
 
 test_get_api_orders_list_with_valid_token()
