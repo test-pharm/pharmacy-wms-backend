@@ -108,6 +108,24 @@ public class ApprovalsController : ControllerBase
         if (request.Batch != null)
         {
             request.Batch.ExpiryDate = request.NewExpiry;
+
+            // Update main product expiry date to the earliest batch expiry
+            var product = await _db.Products
+                .Include(p => p.Batches)
+                .FirstOrDefaultAsync(p => p.Id == request.Batch.ProductId);
+
+            if (product != null)
+            {
+                var earliestBatch = product.Batches
+                    .Where(b => !string.IsNullOrEmpty(b.ExpiryDate))
+                    .OrderBy(b => b.ExpiryDate)
+                    .FirstOrDefault();
+
+                if (earliestBatch != null)
+                {
+                    product.ExpiryDate = earliestBatch.ExpiryDate;
+                }
+            }
         }
 
         await _db.SaveChangesAsync();
