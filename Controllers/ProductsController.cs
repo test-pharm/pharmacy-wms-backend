@@ -182,8 +182,8 @@ public class ProductsController : ControllerBase
         return await Patch(id, request);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpPost("{id}/dispose-expired")]
+    public async Task<IActionResult> DisposeExpired(int id)
     {
         var product = await _db.Products
             .Include(p => p.Batches)
@@ -191,15 +191,35 @@ public class ProductsController : ControllerBase
 
         if (product == null) return NotFound(new { message = "Product not found." });
 
-        var hasOrders = await _db.Orders.AnyAsync(o => o.ProductId == id);
-        if (hasOrders)
-            return Conflict(new { message = "This product is linked to invoice items." });
+        var now = DateTime.UtcNow.Date;
+        var expiredBatches = product.Batches
+            .Where(b => !string.IsNullOrEmpty(b.ExpiryDate))
+            .Where(b => DateTime.TryParse(b.ExpiryDate, out var exp) && exp.Date < now)
+            .ToList();
 
-        _db.StockBatches.RemoveRange(product.Batches);
-        _db.Products.Remove(product);
+        if (!expiredBatches.Any())
+            return BadRequest(new { message = "No expired batches found for this product." });
+
+        int totalDisposed = expiredBatches.Sum(b => b.Quantity);
+        
+        // Remove expired batches
+        _db.StockBatches.RemoveRange(expiredBatches);
+        
+        // Update product total quantity
+        product.Quantity = product.Batches.Where(b => !expiredBatches.Contains(b)).Sum(b => b.Quantity);
+        product.IsAvailable = product.Quantity > 0;
+
         await _db.SaveChangesAsync();
-        await _audit.LogAsync("DeleteProduct", "Product", id, $"Deleted {product.MaterialName}");
-        return NoContent();
+        await _audit.LogAsync("DisposeExpired", "Product", id, $"Disposed {totalDisposed} expired units of {product.MaterialName}");
+        
+        return Ok(new { message = $"Successfully disposed {totalDisposed} expired units.", remainingQuantity = product.Quantity });
+    }
+
+    [HttpDelete("{id}")]
+    [ApiExplorerSettings(IgnoreApi = true)] // Hide from Swagger/UI but keep for emergency if needed, or we can just return error
+    public async Task<IActionResult> Delete(int id)
+    {
+        return BadRequest(new { message = "Complete deletion of materials is disabled. Please use 'Dispose Expired' to remove expired stock." });
     }
 
     [HttpGet("{id}/batches")]
