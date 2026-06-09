@@ -10,7 +10,7 @@ namespace PharmacyWmsBackend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Supervisor")]
 public class UsersController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -47,9 +47,9 @@ public class UsersController : ControllerBase
         var user = await _db.Users.FindAsync(id);
         if (user == null) return NotFound();
 
-        var validRoles = new[] { "Admin", "User" };
+        var validRoles = new[] { "Admin", "Supervisor" };
         if (string.IsNullOrEmpty(request.Role) || !validRoles.Contains(request.Role))
-            return BadRequest(new { message = "Invalid role. Must be 'Admin' or 'User'." });
+            return BadRequest(new { message = "Invalid role. Must be 'Admin' or 'Supervisor'." });
 
         var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(currentUserIdStr) || !int.TryParse(currentUserIdStr, out var currentUserId))

@@ -90,7 +90,7 @@ public class AuthController : ControllerBase
             PasswordHash = PasswordService.Hash(request.Password),
             FullName = request.FullName,
             PhoneNumber = request.PhoneNumber,
-            Role = "User",
+            Role = "Supervisor",
         };
 
         _db.Users.Add(user);
@@ -121,7 +121,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GetSupervisors()
     {
         var supervisors = await _db.Users
-            .Where(u => u.Role == "User")
+            .Where(u => u.Role == "Supervisor")
             .Select(u => new { u.Email, u.FullName })
             .ToListAsync();
 
