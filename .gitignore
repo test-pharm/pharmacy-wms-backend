@@ -5,6 +5,7 @@ publish/
 *.suo
 .vs/
 *.csproj.user
+appsettings.json
 appsettings.Development.json
 __pycache__/
 *.pyc
