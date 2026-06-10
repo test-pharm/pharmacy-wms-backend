@@ -135,8 +135,16 @@ public class AuthController : ControllerBase
         if (user == null) return Ok(new { message = "If the email exists, a code has been sent." });
 
         var code = _resetCode.GenerateCode(request.Email);
-        await _email.SendEmailAsync(request.Email, "Password Reset Code",
-            $"Your password reset code is: {code}. It expires in 15 minutes.");
+        try
+        {
+            await _email.SendEmailAsync(request.Email, "Password Reset Code",
+                $"Your password reset code is: {code}. It expires in 15 minutes.");
+        }
+        catch (Exception ex)
+        {
+            // If email fails, we return a 400 with the error detail so the user knows why
+            return BadRequest(new { message = $"Failed to send email: {ex.Message}. Check SMTP configuration." });
+        }
 
         return Ok(new { message = "If the email exists, a code has been sent." });
     }
